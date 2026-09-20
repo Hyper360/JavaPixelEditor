@@ -15,17 +15,30 @@ class PixelCanvas extends Canvas {
 
     graphics = getGraphicsContext2D(); // Needed to draw stuff on the canvas
 
-    setOnMousePressed(this::draw);
+    setOnMousePressed(this::handleMouseEvent);
+    setOnMouseDragged(this::handleMouseEvent);
     render();
   }
 
-  private void draw(MouseEvent event) {
-    int row = (int) (event.getY() / sheet.CELLSIZE);
-    int col = (int) (event.getX() / sheet.CELLSIZE);
+  private void handleMouseEvent(MouseEvent event) {
+    if (event.isPrimaryButtonDown()) {
+      draw(event.getX(), event.getY(), false);
+    } else if (event.isSecondaryButtonDown()) {
+      draw(event.getX(), event.getY(), true);
+    }
+  }
+
+  private void draw(double x, double y, boolean erase) {
+    int col = (int) (x / sheet.CELLSIZE);
+    int row = (int) (y / sheet.CELLSIZE);
 
     System.out.println(row + " " + col);
 
-    sheet.drawPixel(row, col, Color.BLACK);
+    if (erase) {
+      sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
+    } else {
+      sheet.drawPixel(row, col, Color.BLACK);
+    }
     render();
   }
 
