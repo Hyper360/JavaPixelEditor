@@ -16,17 +16,23 @@ git clone https://github.com/Hyper360/JavaPixelEditor.git
 cd JavaPixelEditor
 ```
 
-Confirm that Java and Maven both use Java 21 (Version of Java being used in this project):
-
-```bash
-java -version
-mvn -version
-```
+You no longer need to confirm that Java and Maven both use Java 21 (Version of Java being used in this project). instead just use the maven wrapper to build and run the project. The wrapper will automatically download the correct version of Maven and use the correct version of Java.
 
 Build and run the application:
-
 ```bash
-mvn clean javafx:run
+# Linux / MacOS
+./mvnw clean javafx:run
+
+# Windows
+mvnw.cmd clean javafx:run
+```
+
+Run the tests:
+```bash
+# Linux / MacOS
+./mvnw test
+# Windows
+mvnw.cmd test
 ```
 
 > [!NOTE]
