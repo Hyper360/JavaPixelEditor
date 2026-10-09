@@ -2,6 +2,7 @@ package com.pixel.editor;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
@@ -9,6 +10,7 @@ class PixelCanvas extends Canvas {
   // Rows and columns should be passed in here to in the future
   PixelGrid sheet = new PixelGrid();
   private final GraphicsContext graphics;
+  private boolean gridVisible = true;
 
   public PixelCanvas() {
     super(640, 640);
@@ -17,6 +19,21 @@ class PixelCanvas extends Canvas {
 
     setOnMousePressed(this::handleMouseEvent);
     setOnMouseDragged(this::handleMouseEvent);
+    setFocusTraversable(true);
+    setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.G) {
+        toggleGrid();
+      }
+    });
+    render();
+  }
+
+  public boolean isGridVisible() {
+    return gridVisible;
+  }
+
+  public void toggleGrid() {
+    gridVisible = !gridVisible;
     render();
   }
 
@@ -48,12 +65,14 @@ class PixelCanvas extends Canvas {
     graphics.fillRect(0, 0, getWidth(), getHeight());
 
     // Drawing the grid lines
-    graphics.setFill(Color.BLACK);
-    for (int row = 0; row <= sheet.ROWS; row++) {
-      graphics.fillRect(0, row * sheet.CELLSIZE, getWidth(), 2);
-    }
-    for (int col = 0; col <= sheet.ROWS; col++) {
-      graphics.fillRect(col * sheet.CELLSIZE, 0, 1, getHeight());
+    if (gridVisible) {
+      graphics.setFill(Color.BLACK);
+      for (int row = 0; row <= sheet.ROWS; row++) {
+        graphics.fillRect(0, row * sheet.CELLSIZE, getWidth(), 2);
+      }
+      for (int col = 0; col <= sheet.ROWS; col++) {
+        graphics.fillRect(col * sheet.CELLSIZE, 0, 1, getHeight());
+      }
     }
 
     // Drawing the grid cells
@@ -66,3 +85,4 @@ class PixelCanvas extends Canvas {
     }
   }
 }
+
