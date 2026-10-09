@@ -15,15 +15,15 @@ public class ImageExporter {
    * Each pixel is scaled up for visibility
    */
   public static void exportAsPNG(PixelGrid grid, String filepath, int scale) throws Exception {
-    int width = grid.COLUMNS * scale;
-    int height = grid.ROWS * scale;
+    int width = grid.getCols() * scale;
+    int height = grid.getRows() * scale;
     
     WritableImage image = new WritableImage(width, height);
     PixelWriter writer = image.getPixelWriter();
     
     // Write each grid pixel to image (scaled up)
-    for (int row = 0; row < grid.ROWS; row++) {
-      for (int col = 0; col < grid.COLUMNS; col++) {
+    for (int row = 0; row < grid.getRows(); row++) {
+      for (int col = 0; col < grid.getCols(); col++) {
         Color pixelColor = grid.grid[row][col];
         
         // Fill scaled pixels
@@ -62,10 +62,10 @@ public class ImageExporter {
     int imgHeight = image.getHeight();
     
     // Sample image pixels and fit to grid
-    for (int row = 0; row < grid.ROWS; row++) {
-      for (int col = 0; col < grid.COLUMNS; col++) {
-        int imgX = (col * imgWidth) / grid.COLUMNS;
-        int imgY = (row * imgHeight) / grid.ROWS;
+    for (int row = 0; row < grid.getRows(); row++) {
+      for (int col = 0; col < grid.getCols(); col++) {
+        int imgX = (col * imgWidth) / grid.getCols();
+        int imgY = (row * imgHeight) / grid.getRows();
         
         // Clamp to image bounds
         imgX = Math.min(imgX, imgWidth - 1);

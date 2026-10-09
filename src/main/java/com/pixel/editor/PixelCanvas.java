@@ -24,7 +24,14 @@ class PixelCanvas extends Canvas {
       if (event.getCode() == KeyCode.G) {
         toggleGrid();
       }
+      if (event.getCode() == KeyCode.EQUALS) {
+        growGrid();
+      }
+      if (event.getCode() == KeyCode.MINUS) {
+        shrinkGrid();
+      }
     });
+
     render();
   }
 
@@ -101,6 +108,15 @@ class PixelCanvas extends Canvas {
     render();
   }
 
+  public void growGrid() {
+    sheet.changeSize(sheet.getRows() + 1, sheet.getRows() + 1);
+    render();
+  }
+
+  public void shrinkGrid() {
+    sheet.changeSize(sheet.getRows() - 1, sheet.getRows() - 1);
+    render();
+  }
 
   private void handleMouseEvent(MouseEvent event) {
     if (event.isPrimaryButtonDown()) {
@@ -131,17 +147,17 @@ class PixelCanvas extends Canvas {
     if (gridVisible) {
       graphics.setStroke(Color.LIGHTGRAY);
       graphics.setLineWidth(1);
-      for (int row = 0; row <= sheet.ROWS; row++) {
+      for (int row = 0; row <= sheet.getRows(); row++) {
         graphics.strokeLine(0, row * sheet.CELLSIZE, getWidth(), row * sheet.CELLSIZE);
       }
-      for (int col = 0; col <= sheet.COLUMNS; col++) {
+      for (int col = 0; col <= sheet.getCols(); col++) {
         graphics.strokeLine(col * sheet.CELLSIZE, 0, col * sheet.CELLSIZE, getHeight());
       }
     }
 
     // Draw pixels
-    for (int row = 0; row < sheet.ROWS; row++) {
-      for (int col = 0; col < sheet.COLUMNS; col++) {
+    for (int row = 0; row < sheet.getRows(); row++) {
+      for (int col = 0; col < sheet.getCols(); col++) {
         graphics.setFill(sheet.grid[row][col]);
         graphics.fillRect(col * sheet.CELLSIZE, row * sheet.CELLSIZE,
             sheet.CELLSIZE, sheet.CELLSIZE);
@@ -149,4 +165,3 @@ class PixelCanvas extends Canvas {
     }
   }
 }
-

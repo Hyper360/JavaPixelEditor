@@ -13,12 +13,12 @@ public class PixelGridSerializer {
         new FileOutputStream(filepath))) {
       
       // Write dimensions
-      dos.writeInt(grid.ROWS);
-      dos.writeInt(grid.COLUMNS);
+      dos.writeInt(grid.getRows());
+      dos.writeInt(grid.getCols());
       
       // Write pixel data
-      for (int row = 0; row < grid.ROWS; row++) {
-        for (int col = 0; col < grid.COLUMNS; col++) {
+      for (int row = 0; row < grid.getRows(); row++) {
+        for (int col = 0; col < grid.getCols(); col++) {
           Color color = grid.grid[row][col];
           // Store RGBA as doubles (8 bytes each = 32 bytes per pixel)
           dos.writeDouble(color.getRed());
@@ -42,15 +42,16 @@ public class PixelGridSerializer {
       int cols = dis.readInt();
       
       // Validate dimensions
-      if (rows <= 0 || cols <= 0) {
+      if (rows < 1 || cols < 1 || rows > 256 || cols > 256) {
         throw new IOException("Invalid grid dimensions: " + rows + "x" + cols);
       }
       
-      // Create new grid and read pixel data
+      // Create a grid with the saved dimensions and read its pixel data
       PixelGrid grid = new PixelGrid();
+      grid.changeSize(rows, cols);
       
-      for (int row = 0; row < rows && row < grid.ROWS; row++) {
-        for (int col = 0; col < cols && col < grid.COLUMNS; col++) {
+      for (int row = 0; row < grid.getRows(); row++) {
+        for (int col = 0; col < grid.getCols(); col++) {
           double r = dis.readDouble();
           double g = dis.readDouble();
           double b = dis.readDouble();
