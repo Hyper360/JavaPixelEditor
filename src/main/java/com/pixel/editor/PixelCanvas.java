@@ -43,7 +43,9 @@ class PixelCanvas extends Canvas {
     render();
   }
 
-  public boolean isGridVisible() { return gridVisible; }
+  public boolean isGridVisible() {
+    return gridVisible;
+  }
 
   public void toggleGrid() {
     gridVisible = !gridVisible;
@@ -135,8 +137,14 @@ class PixelCanvas extends Canvas {
 
     if (scrollAmount > 0) {
       zoom *= zoomFactor;
+      if (zoom > 3) {
+        zoom = 3;
+      }
     } else {
       zoom /= zoomFactor;
+      if (zoom < 0.2) {
+        zoom = 0.2;
+      }
     }
     render();
   }
@@ -172,8 +180,8 @@ class PixelCanvas extends Canvas {
   }
 
   private void draw(double x, double y, boolean erase) {
-    int col = (int)(((x / zoom) + viewportX) / sheet.CELLSIZE);
-    int row = (int)(((y / zoom) + viewportY) / sheet.CELLSIZE);
+    int col = (int) (((x / zoom) + viewportX) / sheet.CELLSIZE);
+    int row = (int) (((y / zoom) + viewportY) / sheet.CELLSIZE);
 
     if (erase) {
       sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
