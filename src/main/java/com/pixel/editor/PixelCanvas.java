@@ -43,9 +43,7 @@ class PixelCanvas extends Canvas {
     render();
   }
 
-  public boolean isGridVisible() {
-    return gridVisible;
-  }
+  public boolean isGridVisible() { return gridVisible; }
 
   public void toggleGrid() {
     gridVisible = !gridVisible;
@@ -180,8 +178,8 @@ class PixelCanvas extends Canvas {
   }
 
   private void draw(double x, double y, boolean erase) {
-    int col = (int) (((x / zoom) + viewportX) / sheet.CELLSIZE);
-    int row = (int) (((y / zoom) + viewportY) / sheet.CELLSIZE);
+    int col = (int)(((x / zoom) + viewportX) / sheet.CELLSIZE);
+    int row = (int)(((y / zoom) + viewportY) / sheet.CELLSIZE);
 
     if (erase) {
       sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
@@ -191,12 +189,7 @@ class PixelCanvas extends Canvas {
     render();
   }
 
-  private void render() {
-    graphics.clearRect(0, 0, getWidth(), getHeight());
-    graphics.setFill(Color.WHITE);
-    graphics.fillRect(0, 0, getWidth(), getHeight());
-
-    // Draw pixels
+  private void drawGridCells() {
     for (int row = 0; row < sheet.getRows(); row++) {
       for (int col = 0; col < sheet.getCols(); col++) {
         graphics.setFill(sheet.grid[row][col]);
@@ -206,23 +199,36 @@ class PixelCanvas extends Canvas {
         graphics.fillRect(screenX, screenY, visibleCellsize, visibleCellsize);
       }
     }
+  }
 
-    // Draw grid lines
+  private void drawGridLines() {
+    graphics.setStroke(Color.LIGHTGRAY);
+    graphics.setLineWidth(1);
+    double gridWidth = (sheet.getCols() * sheet.CELLSIZE) * zoom;
+    double gridHeight = (sheet.getRows() * sheet.CELLSIZE) * zoom;
+    for (int row = 0; row <= sheet.getRows(); row++) {
+      double drawRowStart = ((row * sheet.CELLSIZE) - viewportY) * zoom;
+      graphics.strokeLine(-viewportX * zoom, drawRowStart,
+          gridWidth - (viewportX * zoom), drawRowStart);
+    }
+    for (int col = 0; col <= sheet.getCols(); col++) {
+      double drawColStart = ((col * sheet.CELLSIZE) - viewportX) * zoom;
+      graphics.strokeLine(drawColStart, -viewportY * zoom,
+          drawColStart, gridHeight - (viewportY * zoom));
+    }
+  }
+
+  private void render() {
+    graphics.clearRect(0, 0, getWidth(), getHeight());
+    graphics.setFill(Color.WHITE);
+    graphics.fillRect(0, 0, getWidth(), getHeight());
+
+    // Drawing the grid cells
+    drawGridCells();
+
+    // Drawing the grid lines
     if (gridVisible) {
-      graphics.setStroke(Color.LIGHTGRAY);
-      graphics.setLineWidth(1);
-      double gridWidth = (sheet.getCols() * sheet.CELLSIZE) * zoom;
-      double gridHeight = (sheet.getRows() * sheet.CELLSIZE) * zoom;
-      for (int row = 0; row <= sheet.getRows(); row++) {
-        double drawRowStart = ((row * sheet.CELLSIZE) - viewportY) * zoom;
-        graphics.strokeLine(-viewportX * zoom, drawRowStart,
-            gridWidth - (viewportX * zoom), drawRowStart);
-      }
-      for (int col = 0; col <= sheet.getCols(); col++) {
-        double drawColStart = ((col * sheet.CELLSIZE) - viewportX) * zoom;
-        graphics.strokeLine(drawColStart, -viewportY * zoom,
-            drawColStart, gridHeight - (viewportY * zoom));
-      }
+      drawGridLines();
     }
   }
 }
