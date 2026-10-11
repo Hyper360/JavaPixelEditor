@@ -4,6 +4,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 
 class PixelCanvas extends Canvas {
@@ -16,6 +17,7 @@ class PixelCanvas extends Canvas {
   private double viewportY = 0;
   private double lastMouseX = 0;
   private double lastMouseY = 0;
+  private double zoom = 1.0;
 
   public PixelCanvas() {
     super(640, 640);
@@ -24,6 +26,7 @@ class PixelCanvas extends Canvas {
 
     setOnMousePressed(this::handleMousePressed);
     setOnMouseDragged(this::handleMouseDragged);
+    setOnScroll(this::handleScroll);
     setFocusTraversable(true);
     setOnKeyPressed(event -> {
       if (event.getCode() == KeyCode.G) {
@@ -121,6 +124,23 @@ class PixelCanvas extends Canvas {
     render();
   }
 
+  private void handleScroll(ScrollEvent event) {
+    double scrollAmount = event.getDeltaY();
+    // Using a zoom factor instead of a constant for smoother "zooming"
+    double zoomFactor = 1.1;
+
+    if (scrollAmount == 0) {
+      return;
+    }
+
+    if (scrollAmount > 0) {
+      zoom *= zoomFactor;
+    } else {
+      zoom /= zoomFactor;
+    }
+    render();
+  }
+
   private void handleMousePressed(MouseEvent event) {
     lastMouseX = event.getX();
     lastMouseY = event.getY();
@@ -137,8 +157,8 @@ class PixelCanvas extends Canvas {
       double deltaX = event.getX() - lastMouseX;
       double deltaY = event.getY() - lastMouseY;
 
-      viewportX -= deltaX;
-      viewportY -= deltaY;
+      viewportX -= deltaX / zoom;
+      viewportY -= deltaY / zoom;
 
       lastMouseX = event.getX();
       lastMouseY = event.getY();
@@ -152,8 +172,8 @@ class PixelCanvas extends Canvas {
   }
 
   private void draw(double x, double y, boolean erase) {
-    int col = (int)((x + viewportX) / sheet.CELLSIZE);
-    int row = (int)((y + viewportY) / sheet.CELLSIZE);
+    int col = (int)(((x / zoom) + viewportX) / sheet.CELLSIZE);
+    int row = (int)(((y / zoom) + viewportY) / sheet.CELLSIZE);
 
     if (erase) {
       sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
@@ -168,31 +188,32 @@ class PixelCanvas extends Canvas {
     graphics.setFill(Color.WHITE);
     graphics.fillRect(0, 0, getWidth(), getHeight());
 
-    // Draw grid lines
-    if (gridVisible) {
-      graphics.setStroke(Color.LIGHTGRAY);
-      graphics.setLineWidth(1);
-      double gridWidth = sheet.getCols() * sheet.CELLSIZE;
-      double gridHeight = sheet.getRows() * sheet.CELLSIZE;
-      for (int row = 0; row <= sheet.getRows(); row++) {
-        double drawRowStart = (row * sheet.CELLSIZE) - viewportY;
-        graphics.strokeLine(-viewportX, drawRowStart,
-            gridWidth - viewportX, drawRowStart);
-      }
-      for (int col = 0; col <= sheet.getCols(); col++) {
-        double drawColStart = (col * sheet.CELLSIZE) - viewportX;
-        graphics.strokeLine(drawColStart, -viewportY,
-            drawColStart, gridHeight - viewportY);
-      }
-    }
-
     // Draw pixels
     for (int row = 0; row < sheet.getRows(); row++) {
       for (int col = 0; col < sheet.getCols(); col++) {
         graphics.setFill(sheet.grid[row][col]);
-        double screenX = (col * sheet.CELLSIZE) - viewportX;
-        double screenY = (row * sheet.CELLSIZE) - viewportY;
-        graphics.fillRect(screenX, screenY, sheet.CELLSIZE, sheet.CELLSIZE);
+        double screenX = ((col * sheet.CELLSIZE) - viewportX) * zoom;
+        double screenY = ((row * sheet.CELLSIZE) - viewportY) * zoom;
+        double visibleCellsize = sheet.CELLSIZE * zoom;
+        graphics.fillRect(screenX, screenY, visibleCellsize, visibleCellsize);
+      }
+    }
+
+    // Draw grid lines
+    if (gridVisible) {
+      graphics.setStroke(Color.LIGHTGRAY);
+      graphics.setLineWidth(1);
+      double gridWidth = (sheet.getCols() * sheet.CELLSIZE) * zoom;
+      double gridHeight = (sheet.getRows() * sheet.CELLSIZE) * zoom;
+      for (int row = 0; row <= sheet.getRows(); row++) {
+        double drawRowStart = ((row * sheet.CELLSIZE) - viewportY) * zoom;
+        graphics.strokeLine(-viewportX * zoom, drawRowStart,
+            gridWidth - (viewportX * zoom), drawRowStart);
+      }
+      for (int col = 0; col <= sheet.getCols(); col++) {
+        double drawColStart = ((col * sheet.CELLSIZE) - viewportX) * zoom;
+        graphics.strokeLine(drawColStart, -viewportY * zoom,
+            drawColStart, gridHeight - (viewportY * zoom));
       }
     }
   }
