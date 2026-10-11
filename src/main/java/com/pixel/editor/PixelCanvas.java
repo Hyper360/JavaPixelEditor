@@ -12,13 +12,18 @@ class PixelCanvas extends Canvas {
   private final GraphicsContext graphics;
   private boolean gridVisible = true;
 
+  private double viewportX = 0;
+  private double viewportY = 0;
+  private double lastMouseX = 0;
+  private double lastMouseY = 0;
+
   public PixelCanvas() {
     super(640, 640);
 
     graphics = getGraphicsContext2D(); // Needed to draw stuff on the canvas
 
-    setOnMousePressed(this::handleMouseEvent);
-    setOnMouseDragged(this::handleMouseEvent);
+    setOnMousePressed(this::handleMousePressed);
+    setOnMouseDragged(this::handleMouseDragged);
     setFocusTraversable(true);
     setOnKeyPressed(event -> {
       if (event.getCode() == KeyCode.G) {
@@ -35,9 +40,7 @@ class PixelCanvas extends Canvas {
     render();
   }
 
-  public boolean isGridVisible() {
-    return gridVisible;
-  }
+  public boolean isGridVisible() { return gridVisible; }
 
   public void toggleGrid() {
     gridVisible = !gridVisible;
@@ -118,7 +121,10 @@ class PixelCanvas extends Canvas {
     render();
   }
 
-  private void handleMouseEvent(MouseEvent event) {
+  private void handleMousePressed(MouseEvent event) {
+    lastMouseX = event.getX();
+    lastMouseY = event.getY();
+
     if (event.isPrimaryButtonDown()) {
       draw(event.getX(), event.getY(), false);
     } else if (event.isSecondaryButtonDown()) {
@@ -126,9 +132,28 @@ class PixelCanvas extends Canvas {
     }
   }
 
+  private void handleMouseDragged(MouseEvent event) {
+    if (event.isMiddleButtonDown()) {
+      double deltaX = event.getX() - lastMouseX;
+      double deltaY = event.getY() - lastMouseY;
+
+      viewportX -= deltaX;
+      viewportY -= deltaY;
+
+      lastMouseX = event.getX();
+      lastMouseY = event.getY();
+      render();
+      return;
+    } else if (event.isPrimaryButtonDown()) {
+      draw(event.getX(), event.getY(), false);
+    } else if (event.isSecondaryButtonDown()) {
+      draw(event.getX(), event.getY(), true);
+    }
+  }
+
   private void draw(double x, double y, boolean erase) {
-    int col = (int) (x / sheet.CELLSIZE);
-    int row = (int) (y / sheet.CELLSIZE);
+    int col = (int)((x + viewportX) / sheet.CELLSIZE);
+    int row = (int)((y + viewportY) / sheet.CELLSIZE);
 
     if (erase) {
       sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
@@ -147,11 +172,17 @@ class PixelCanvas extends Canvas {
     if (gridVisible) {
       graphics.setStroke(Color.LIGHTGRAY);
       graphics.setLineWidth(1);
+      double gridWidth = sheet.getCols() * sheet.CELLSIZE;
+      double gridHeight = sheet.getRows() * sheet.CELLSIZE;
       for (int row = 0; row <= sheet.getRows(); row++) {
-        graphics.strokeLine(0, row * sheet.CELLSIZE, getWidth(), row * sheet.CELLSIZE);
+        double drawRowStart = (row * sheet.CELLSIZE) - viewportY;
+        graphics.strokeLine(-viewportX, drawRowStart,
+            gridWidth - viewportX, drawRowStart);
       }
       for (int col = 0; col <= sheet.getCols(); col++) {
-        graphics.strokeLine(col * sheet.CELLSIZE, 0, col * sheet.CELLSIZE, getHeight());
+        double drawColStart = (col * sheet.CELLSIZE) - viewportX;
+        graphics.strokeLine(drawColStart, -viewportY,
+            drawColStart, gridHeight - viewportY);
       }
     }
 
@@ -159,8 +190,9 @@ class PixelCanvas extends Canvas {
     for (int row = 0; row < sheet.getRows(); row++) {
       for (int col = 0; col < sheet.getCols(); col++) {
         graphics.setFill(sheet.grid[row][col]);
-        graphics.fillRect(col * sheet.CELLSIZE, row * sheet.CELLSIZE,
-            sheet.CELLSIZE, sheet.CELLSIZE);
+        double screenX = (col * sheet.CELLSIZE) - viewportX;
+        double screenY = (row * sheet.CELLSIZE) - viewportY;
+        graphics.fillRect(screenX, screenY, sheet.CELLSIZE, sheet.CELLSIZE);
       }
     }
   }
