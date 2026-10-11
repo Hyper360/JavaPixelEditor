@@ -8,7 +8,7 @@ import javafx.scene.paint.Color;
 
 class PixelCanvas extends Canvas {
   // Rows and columns should be passed in here to in the future
-  PixelGrid sheet = new PixelGrid();
+  public PixelGrid sheet = new PixelGrid();
   private final GraphicsContext graphics;
   private boolean gridVisible = true;
 
@@ -37,6 +37,71 @@ class PixelCanvas extends Canvas {
     render();
   }
 
+  // ===== SAVE/LOAD METHODS =====
+
+  /**
+   * Save current grid to binary file
+   */
+  public void saveGridAsBinary(String filepath) {
+    try {
+      PixelGridSerializer.saveBinary(sheet, filepath);
+      System.out.println("✓ Grid saved to: " + filepath);
+    } catch (Exception e) {
+      System.err.println("✗ Error saving grid: " + e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Load grid from binary file
+   */
+  public void loadGridFromBinary(String filepath) {
+    try {
+      sheet = PixelGridSerializer.loadBinary(filepath);
+      render();
+      System.out.println("✓ Grid loaded from: " + filepath);
+    } catch (Exception e) {
+      System.err.println("✗ Error loading grid: " + e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Export grid as PNG image
+   */
+  public void exportGridAsPNG(String filepath) {
+    try {
+      ImageExporter.exportAsPNG(sheet, filepath);
+      System.out.println("✓ Grid exported as PNG: " + filepath);
+    } catch (Exception e) {
+      System.err.println("✗ Error exporting PNG: " + e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Import PNG image into grid
+   */
+  public void importPNG(String filepath) {
+    try {
+      sheet = ImageExporter.importFromPNG(filepath);
+      render();
+      System.out.println("✓ PNG imported: " + filepath);
+    } catch (Exception e) {
+      System.err.println("✗ Error importing PNG: " + e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Clear the grid
+   */
+  public void newGrid() {
+    sheet.clear();
+    render();
+  }
+
+
   private void handleMouseEvent(MouseEvent event) {
     if (event.isPrimaryButtonDown()) {
       draw(event.getX(), event.getY(), false);
@@ -48,8 +113,6 @@ class PixelCanvas extends Canvas {
   private void draw(double x, double y, boolean erase) {
     int col = (int) (x / sheet.CELLSIZE);
     int row = (int) (y / sheet.CELLSIZE);
-
-    System.out.println(row + " " + col);
 
     if (erase) {
       sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
@@ -64,20 +127,21 @@ class PixelCanvas extends Canvas {
     graphics.setFill(Color.WHITE);
     graphics.fillRect(0, 0, getWidth(), getHeight());
 
-    // Drawing the grid lines
+    // Draw grid lines
     if (gridVisible) {
-      graphics.setFill(Color.BLACK);
+      graphics.setStroke(Color.LIGHTGRAY);
+      graphics.setLineWidth(1);
       for (int row = 0; row <= sheet.ROWS; row++) {
-        graphics.fillRect(0, row * sheet.CELLSIZE, getWidth(), 2);
+        graphics.strokeLine(0, row * sheet.CELLSIZE, getWidth(), row * sheet.CELLSIZE);
       }
-      for (int col = 0; col <= sheet.ROWS; col++) {
-        graphics.fillRect(col * sheet.CELLSIZE, 0, 1, getHeight());
+      for (int col = 0; col <= sheet.COLUMNS; col++) {
+        graphics.strokeLine(col * sheet.CELLSIZE, 0, col * sheet.CELLSIZE, getHeight());
       }
     }
 
-    // Drawing the grid cells
+    // Draw pixels
     for (int row = 0; row < sheet.ROWS; row++) {
-      for (int col = 0; col < sheet.ROWS; col++) {
+      for (int col = 0; col < sheet.COLUMNS; col++) {
         graphics.setFill(sheet.grid[row][col]);
         graphics.fillRect(col * sheet.CELLSIZE, row * sheet.CELLSIZE,
             sheet.CELLSIZE, sheet.CELLSIZE);
