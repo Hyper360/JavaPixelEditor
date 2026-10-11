@@ -64,8 +64,8 @@ class PixelGridSerializerTest {
     PixelGrid imported = ImageExporter.importFromPNG(TEST_PNG);
 
     assertNotNull(imported, "Imported grid should not be null");
-    assertEquals(original.ROWS, imported.ROWS, "Row count should match");
-    assertEquals(original.COLUMNS, imported.COLUMNS, "Column count should match");
+    assertEquals(original.getRows(), imported.getRows(), "Row count should match");
+    assertEquals(original.getCols(), imported.getCols(), "Column count should match");
   }
 
   @Test
@@ -74,8 +74,8 @@ class PixelGridSerializerTest {
     grid.drawPixel(5, 5, Color.BLACK);
     grid.clear();
 
-    for (int i = 0; i < grid.ROWS; i++) {
-      for (int j = 0; j < grid.COLUMNS; j++) {
+    for (int i = 0; i < grid.getRows(); i++) {
+      for (int j = 0; j < grid.getCols(); j++) {
         assertEquals(new Color(0, 0, 0, 0), grid.grid[i][j],
             "All pixels should be transparent after clear");
       }
