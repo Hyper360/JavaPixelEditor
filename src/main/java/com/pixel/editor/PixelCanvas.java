@@ -24,7 +24,14 @@ class PixelCanvas extends Canvas {
       if (event.getCode() == KeyCode.G) {
         toggleGrid();
       }
+      if (event.getCode() == KeyCode.EQUALS) {
+        growGrid();
+      }
+      if (event.getCode() == KeyCode.MINUS) {
+        shrinkGrid();
+      }
     });
+
     render();
   }
 
@@ -34,6 +41,16 @@ class PixelCanvas extends Canvas {
 
   public void toggleGrid() {
     gridVisible = !gridVisible;
+    render();
+  }
+
+  public void growGrid() {
+    sheet.changeSize(sheet.getRows() + 1, sheet.getRows() + 1);
+    render();
+  }
+
+  public void shrinkGrid() {
+    sheet.changeSize(sheet.getRows() - 1, sheet.getRows() - 1);
     render();
   }
 
@@ -67,17 +84,20 @@ class PixelCanvas extends Canvas {
     // Drawing the grid lines
     if (gridVisible) {
       graphics.setFill(Color.BLACK);
-      for (int row = 0; row <= sheet.ROWS; row++) {
-        graphics.fillRect(0, row * sheet.CELLSIZE, getWidth(), 2);
+      for (int row = 0; row <= sheet.getRows(); row++) {
+        double drawStart = row * sheet.CELLSIZE;
+        double drawEnd = sheet.getRows() * sheet.CELLSIZE;
+        graphics.fillRect(0, drawStart, drawEnd, 2);
       }
-      for (int col = 0; col <= sheet.ROWS; col++) {
-        graphics.fillRect(col * sheet.CELLSIZE, 0, 1, getHeight());
+      for (int col = 0; col <= sheet.getRows(); col++) {
+        graphics.fillRect(col * sheet.CELLSIZE, 0, 1,
+            sheet.getRows() * sheet.CELLSIZE);
       }
     }
 
     // Drawing the grid cells
-    for (int row = 0; row < sheet.ROWS; row++) {
-      for (int col = 0; col < sheet.ROWS; col++) {
+    for (int row = 0; row < sheet.getRows(); row++) {
+      for (int col = 0; col < sheet.getRows(); col++) {
         graphics.setFill(sheet.grid[row][col]);
         graphics.fillRect(col * sheet.CELLSIZE, row * sheet.CELLSIZE,
             sheet.CELLSIZE, sheet.CELLSIZE);
@@ -85,4 +105,3 @@ class PixelCanvas extends Canvas {
     }
   }
 }
-
