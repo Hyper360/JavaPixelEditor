@@ -19,6 +19,8 @@ class PixelCanvas extends Canvas {
   private double lastMouseY = 0;
   private double zoom = 1.0;
 
+  private Color paintColor = Color.BLACK;
+
   public PixelCanvas() {
     super(640, 640);
 
@@ -148,6 +150,7 @@ class PixelCanvas extends Canvas {
   }
 
   private void handleMousePressed(MouseEvent event) {
+    requestFocus();
     lastMouseX = event.getX();
     lastMouseY = event.getY();
 
@@ -184,7 +187,7 @@ class PixelCanvas extends Canvas {
     if (erase) {
       sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
     } else {
-      sheet.drawPixel(row, col, Color.BLACK);
+      sheet.drawPixel(row, col, paintColor);
     }
     render();
   }
@@ -230,5 +233,9 @@ class PixelCanvas extends Canvas {
     if (gridVisible) {
       drawGridLines();
     }
+  }
+
+  public void setPaintColor(Color color) {
+    paintColor = color;
   }
 }
