@@ -1,25 +1,34 @@
 package com.pixel.editor;
 
+import java.io.File;
+
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javafx.stage.FileChooser;
-import java.io.File;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class PixelEditorApplication extends Application {
 
   private PixelCanvas pixelCanvas;
+  private ColorPicker colorPicker;
   private Stage primaryStage;
+
 
   @Override
   public void start(Stage stage) {
     this.primaryStage = stage;
     pixelCanvas = new PixelCanvas();
+
+    colorPicker = new ColorPicker(stage);
+    colorPicker.setOnColorChanged(this::handleColorChanged);
+    colorPicker.setOnClosed(this::handleColorPickerClosed);
 
     MenuBar menuBar = createMenuBar();
 
@@ -31,7 +40,7 @@ public class PixelEditorApplication extends Application {
     stage.setTitle("Java Pixel Editor");
     stage.setScene(scene);
     stage.show();
-    
+
     pixelCanvas.requestFocus();
   }
 
@@ -79,8 +88,29 @@ public class PixelEditorApplication extends Application {
 
     editMenu.getItems().addAll(toggleGridItem);
 
-    menuBar.getMenus().addAll(fileMenu, editMenu);
+    // ===== COLOR PICKER =====
+    Menu colorMenu = new Menu("Color");
+
+    MenuItem colorItem = new MenuItem("Color");
+    colorItem.setOnAction(this::handlePickColor);
+
+    colorMenu.getItems().addAll(colorItem);
+
+    menuBar.getMenus().addAll(fileMenu, editMenu, colorMenu);
     return menuBar;
+
+  }
+
+  private void handlePickColor(ActionEvent event) {
+    colorPicker.pickColor();
+  }
+
+  private void handleColorChanged(ActionEvent event) {
+    pixelCanvas.setPaintColor(colorPicker.getColor());
+  }
+
+  private void handleColorPickerClosed(WindowEvent event) {
+    pixelCanvas.requestFocus();
   }
 
   // ===== FILE HANDLERS =====
