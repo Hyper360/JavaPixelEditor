@@ -96,7 +96,16 @@ public class PixelEditorApplication extends Application {
 
     colorMenu.getItems().addAll(colorItem);
 
-    menuBar.getMenus().addAll(fileMenu, editMenu, colorMenu);
+    // ===== DRAWING TOOLS MENU =====
+    Menu toolsMenu = new Menu("Tools");
+
+    MenuItem eraseItem = new MenuItem("Erase");
+    // eraseItem.setOnAction()
+
+    toolsMenu.getItems().addAll(eraseItem);
+
+
+    menuBar.getMenus().addAll(fileMenu, editMenu, colorMenu, toolsMenu);
     return menuBar;
 
   }
