@@ -1,11 +1,12 @@
 package com.pixel.editor;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
-import javafx.scene.paint.Color;
+import java.awt.image.BufferedImage;
 import java.io.File;
-
+import javax.imageio.ImageIO;
+import javafx.scene.paint.Color;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PixelGridSerializerTest {
@@ -54,18 +55,27 @@ class PixelGridSerializerTest {
   @Test
   void testExportAndImportPNG() throws Exception {
     PixelGrid original = new PixelGrid();
-    original.drawPixel(0, 0, Color.BLACK);
+    original.drawPixel(0, 0, Color.RED);
     original.drawPixel(1, 1, Color.WHITE);
-    original.drawPixel(2, 2, Color.RED);
+    original.drawPixel(2, 2, Color.BLUE);
+    original.drawPixel(3, 3, Color.color(0, 1, 0, 0.5));
 
     ImageExporter.exportAsPNG(original, TEST_PNG, 10);
     assertTrue(new File(TEST_PNG).exists(), "PNG file should exist");
 
-    PixelGrid imported = ImageExporter.importFromPNG(TEST_PNG);
+    BufferedImage exported = ImageIO.read(new File(TEST_PNG));
+    assertEquals(0xFFFF0000, exported.getRGB(0, 0));
+    assertEquals(0xFFFFFFFF, exported.getRGB(10, 10));
+    assertEquals(0xFF0000FF, exported.getRGB(20, 20));
+    assertEquals(0x8000FF00, exported.getRGB(30, 30));
 
+    PixelGrid imported = ImageExporter.importFromPNG(TEST_PNG);
     assertNotNull(imported, "Imported grid should not be null");
     assertEquals(original.getRows(), imported.getRows(), "Row count should match");
     assertEquals(original.getCols(), imported.getCols(), "Column count should match");
+    assertEquals(Color.RED, imported.grid[0][0]);
+    assertEquals(Color.WHITE, imported.grid[1][1]);
+    assertEquals(Color.BLUE, imported.grid[2][2]);
   }
 
   @Test

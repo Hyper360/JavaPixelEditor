@@ -1,12 +1,10 @@
 package com.pixel.editor;
 
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
-import javafx.embed.swing.SwingFXUtils;
-import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import javax.imageio.ImageIO;
 
 public class ImageExporter {
 
@@ -18,26 +16,24 @@ public class ImageExporter {
     int width = grid.getCols() * scale;
     int height = grid.getRows() * scale;
     
-    WritableImage image = new WritableImage(width, height);
-    PixelWriter writer = image.getPixelWriter();
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     
     // Write each grid pixel to image (scaled up)
     for (int row = 0; row < grid.getRows(); row++) {
       for (int col = 0; col < grid.getCols(); col++) {
         Color pixelColor = grid.grid[row][col];
+        int argb = toArgb(pixelColor);
         
         // Fill scaled pixels
         for (int i = 0; i < scale; i++) {
           for (int j = 0; j < scale; j++) {
-            writer.setColor(col * scale + j, row * scale + i, pixelColor);
+            image.setRGB(col * scale + j, row * scale + i, argb);
           }
         }
       }
     }
     
-    // Save as PNG
-    var bufferedImage = SwingFXUtils.fromFXImage(image, null);
-    ImageIO.write(bufferedImage, "png", new File(filepath));
+    ImageIO.write(image, "png", new File(filepath));
   }
 
   /**
@@ -86,5 +82,13 @@ public class ImageExporter {
     }
     
     return grid;
+  }
+
+  private static int toArgb(Color color) {
+    int alpha = (int) Math.round(color.getOpacity() * 255);
+    int red = (int) Math.round(color.getRed() * 255);
+    int green = (int) Math.round(color.getGreen() * 255);
+    int blue = (int) Math.round(color.getBlue() * 255);
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
 }
