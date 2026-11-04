@@ -9,7 +9,11 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -33,7 +37,7 @@ public class PixelEditorApplication extends Application {
     MenuBar menuBar = createMenuBar();
 
     BorderPane root = new BorderPane();
-    root.setTop(menuBar);
+    root.setTop(new VBox(menuBar, createToolBar()));
     root.setCenter(pixelCanvas);
 
     Scene scene = new Scene(root, 800, 700);
@@ -113,6 +117,23 @@ public class PixelEditorApplication extends Application {
 
   private void handleColorPickerClosed(WindowEvent event) {
     pixelCanvas.requestFocus();
+  }
+
+  private ToolBar createToolBar() {
+    ToggleGroup editingTools = new ToggleGroup();
+    ToggleButton pencilButton = new ToggleButton("Pencil");
+    pencilButton.setToggleGroup(editingTools);
+    pencilButton.setSelected(true);
+    pencilButton.setOnAction(event ->
+        pixelCanvas.setEditingTool(PixelCanvas.EditingTool.PENCIL));
+
+    ToggleButton bucketFillButton = new ToggleButton("Bucket Fill");
+    bucketFillButton.setToggleGroup(editingTools);
+    bucketFillButton.setOnAction(event ->
+        pixelCanvas.setEditingTool(PixelCanvas.EditingTool.BUCKET_FILL));
+
+
+    return new ToolBar(pencilButton, bucketFillButton);
   }
 
   // ===== FILE HANDLERS =====

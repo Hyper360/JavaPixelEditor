@@ -18,10 +18,17 @@ class PixelCanvas extends Canvas {
   private double lastMouseX = 0;
   private double lastMouseY = 0;
   private double zoom = 1.0;
+  private EditingTool editingTool = EditingTool.PENCIL;
+  public enum EditingTool {
+    PENCIL,
+    BUCKET_FILL
+  }
+
 
   private Color paintColor = Color.BLACK;
 
   public PixelCanvas() {
+
     super(640, 640);
 
     graphics = getGraphicsContext2D(); // Needed to draw stuff on the canvas
@@ -51,6 +58,12 @@ class PixelCanvas extends Canvas {
     gridVisible = !gridVisible;
     render();
   }
+
+  public void setEditingTool(EditingTool editingTool) {
+    this.editingTool = editingTool;
+  }
+
+
 
   // ===== SAVE/LOAD METHODS =====
 
@@ -155,7 +168,11 @@ class PixelCanvas extends Canvas {
     lastMouseY = event.getY();
 
     if (event.isPrimaryButtonDown()) {
-      draw(event.getX(), event.getY(), false);
+      if (editingTool == EditingTool.BUCKET_FILL) {
+        fill(event.getX(), event.getY());
+      } else {
+        draw(event.getX(), event.getY(), false);
+      }
     } else if (event.isSecondaryButtonDown()) {
       draw(event.getX(), event.getY(), true);
     }
@@ -173,7 +190,7 @@ class PixelCanvas extends Canvas {
       lastMouseY = event.getY();
       render();
       return;
-    } else if (event.isPrimaryButtonDown()) {
+    } else if (event.isPrimaryButtonDown() && editingTool == EditingTool.PENCIL) {
       draw(event.getX(), event.getY(), false);
     } else if (event.isSecondaryButtonDown()) {
       draw(event.getX(), event.getY(), true);
@@ -189,6 +206,14 @@ class PixelCanvas extends Canvas {
     } else {
       sheet.drawPixel(row, col, paintColor);
     }
+    render();
+  }
+
+  private void fill(double x, double y) {
+    int col = (int)(((x / zoom) + viewportX) / sheet.CELLSIZE);
+    int row = (int)(((y / zoom) + viewportY) / sheet.CELLSIZE);
+
+    sheet.fillContiguousArea(row, col, paintColor);
     render();
   }
 
