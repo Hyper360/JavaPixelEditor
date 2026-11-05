@@ -1,5 +1,8 @@
 package com.pixel.editor;
 
+import java.util.ArrayDeque;
+import java.util.Objects;
+
 import javafx.scene.paint.Color;
 
 public class PixelGrid {
@@ -62,6 +65,41 @@ public class PixelGrid {
   public void drawPixel(int row, int col, Color c) {
     if (row >= 0 && row < ROWS && col >= 0 && col < COLUMNS) {
       grid[row][col] = c;
+    }
+  }
+
+  public void fillContiguousArea(int row, int col, Color color) {
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLUMNS) {
+      return;
+    }
+
+    Color originalColor = grid[row][col];
+    if (Objects.equals(originalColor, color)) {
+      return;
+    }
+
+    ArrayDeque<Integer> cellsToFill = new ArrayDeque<>();
+    cellsToFill.add(row * COLUMNS + col);
+    grid[row][col] = color;
+
+    while (!cellsToFill.isEmpty()) {
+      int cell = cellsToFill.remove();
+      int currentRow = cell / COLUMNS;
+      int currentCol = cell % COLUMNS;
+
+      addMatchingNeighbor(cellsToFill, currentRow - 1, currentCol, originalColor, color);
+      addMatchingNeighbor(cellsToFill, currentRow + 1, currentCol, originalColor, color);
+      addMatchingNeighbor(cellsToFill, currentRow, currentCol - 1, originalColor, color);
+      addMatchingNeighbor(cellsToFill, currentRow, currentCol + 1, originalColor, color);
+    }
+  }
+
+  private void addMatchingNeighbor(ArrayDeque<Integer> cellsToFill, int row, int col,
+      Color originalColor, Color replacementColor) {
+    if (row >= 0 && row < ROWS && col >= 0 && col < COLUMNS
+        && Objects.equals(grid[row][col], originalColor)) {
+      grid[row][col] = replacementColor;
+      cellsToFill.add(row * COLUMNS + col);
     }
   }
 
