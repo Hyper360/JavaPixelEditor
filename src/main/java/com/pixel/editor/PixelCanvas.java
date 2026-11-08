@@ -7,6 +7,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 
+enum Tool {
+  PENCIL,
+  RECTANGLE,
+  CIRCLE
+}
+
 class PixelCanvas extends Canvas {
   // Rows and columns should be passed in here to in the future
   public PixelGrid sheet = new PixelGrid();
@@ -20,6 +26,12 @@ class PixelCanvas extends Canvas {
   private double zoom = 1.0;
 
   private Color paintColor = Color.BLACK;
+  private Tool currentTool = Tool.PENCIL;
+
+  private int startCol = -1;
+  private int startRow = -1;
+  private int previewCol = -1;
+  private int previewRow = -1;
 
   public PixelCanvas() {
     super(640, 640);
@@ -28,6 +40,7 @@ class PixelCanvas extends Canvas {
 
     setOnMousePressed(this::handleMousePressed);
     setOnMouseDragged(this::handleMouseDragged);
+    setOnMouseReleased(this::handleMouseReleased);
     setOnScroll(this::handleScroll);
     setFocusTraversable(true);
     setOnKeyPressed(event -> {
@@ -155,7 +168,15 @@ class PixelCanvas extends Canvas {
     lastMouseY = event.getY();
 
     if (event.isPrimaryButtonDown()) {
-      draw(event.getX(), event.getY(), false);
+      if (currentTool == Tool.PENCIL) {
+        draw(event.getX(), event.getY(), false);
+      } else if (currentTool == Tool.RECTANGLE || currentTool == Tool.CIRCLE) {
+        startCol = toGridCol(event.getX());
+        startRow = toGridRow(event.getY());
+        previewCol = startCol;
+        previewRow = startRow;
+        render();
+      }
     } else if (event.isSecondaryButtonDown()) {
       draw(event.getX(), event.getY(), true);
     }
@@ -173,16 +194,82 @@ class PixelCanvas extends Canvas {
       lastMouseY = event.getY();
       render();
       return;
-    } else if (event.isPrimaryButtonDown()) {
-      draw(event.getX(), event.getY(), false);
+    }
+
+    if (event.isPrimaryButtonDown()) {
+      if (currentTool == Tool.PENCIL) {
+        draw(event.getX(), event.getY(), false);
+      } else if (currentTool == Tool.RECTANGLE || currentTool == Tool.CIRCLE) {
+        previewCol = toGridCol(event.getX());
+        previewRow = toGridRow(event.getY());
+        render();
+      }
     } else if (event.isSecondaryButtonDown()) {
       draw(event.getX(), event.getY(), true);
     }
   }
 
+  private void handleMouseReleased(MouseEvent event) {
+    if (currentTool != Tool.RECTANGLE && currentTool != Tool.CIRCLE) {
+      return;
+    }
+
+    if (startCol < 0 || startRow < 0 || previewCol < 0 || previewRow < 0) {
+      return;
+    }
+
+    commitShape();
+    startCol = -1;
+    startRow = -1;
+    previewCol = -1;
+    previewRow = -1;
+    render();
+  }
+
+  private int toGridCol(double x) {
+    return (int) (((x / zoom) + viewportX) / sheet.CELLSIZE);
+  }
+
+  private int toGridRow(double y) {
+    return (int) (((y / zoom) + viewportY) / sheet.CELLSIZE);
+  }
+
+  private void commitShape() {
+    int minCol = Math.min(startCol, previewCol);
+    int maxCol = Math.max(startCol, previewCol);
+    int minRow = Math.min(startRow, previewRow);
+    int maxRow = Math.max(startRow, previewRow);
+
+    if (currentTool == Tool.RECTANGLE) {
+      for (int row = minRow; row <= maxRow; row++) {
+        for (int col = minCol; col <= maxCol; col++) {
+          sheet.drawPixel(row, col, paintColor);
+        }
+      }
+    } else if (currentTool == Tool.CIRCLE) {
+      double width = maxCol - minCol + 1.0;
+      double height = maxRow - minRow + 1.0;
+      double radius = Math.max(1.0, Math.min(width, height) / 2.0);
+
+      double centerX = minCol + (width / 2.0);
+      double centerY = minRow + (height / 2.0);
+
+      for (int row = minRow; row <= maxRow; row++) {
+        for (int col = minCol; col <= maxCol; col++) {
+          double dx = (col + 0.5) - centerX;
+          double dy = (row + 0.5) - centerY;
+
+          if (dx * dx + dy * dy <= radius * radius) {
+            sheet.drawPixel(row, col, paintColor);
+          }
+        }
+      }
+    }
+  }
+
   private void draw(double x, double y, boolean erase) {
-    int col = (int)(((x / zoom) + viewportX) / sheet.CELLSIZE);
-    int row = (int)(((y / zoom) + viewportY) / sheet.CELLSIZE);
+    int col = toGridCol(x);
+    int row = toGridRow(y);
 
     if (erase) {
       sheet.drawPixel(row, col, new Color(0, 0, 0, 0));
@@ -221,6 +308,47 @@ class PixelCanvas extends Canvas {
     }
   }
 
+  private void drawShapePreview(GraphicsContext gc) {
+    if (currentTool != Tool.RECTANGLE && currentTool != Tool.CIRCLE) {
+      return;
+    }
+
+    if (startCol < 0 || startRow < 0 || previewCol < 0 || previewRow < 0) {
+      return;
+    }
+
+    int minCol = Math.min(startCol, previewCol);
+    int maxCol = Math.max(startCol, previewCol);
+    int minRow = Math.min(startRow, previewRow);
+    int maxRow = Math.max(startRow, previewRow);
+
+    gc.setStroke(paintColor);
+    gc.setLineWidth(1.5);
+    gc.setGlobalAlpha(0.75);
+
+    if (currentTool == Tool.RECTANGLE) {
+      gc.strokeRect(minCol * sheet.CELLSIZE, minRow * sheet.CELLSIZE,
+          (maxCol - minCol + 1) * sheet.CELLSIZE,
+          (maxRow - minRow + 1) * sheet.CELLSIZE);
+    } else if (currentTool == Tool.CIRCLE) {
+      double width = maxCol - minCol + 1.0;
+      double height = maxRow - minRow + 1.0;
+      double radius = Math.max(1.0, Math.min(width, height) / 2.0);
+
+      double centerX = minCol + (width / 2.0);
+      double centerY = minRow + (height / 2.0);
+
+      gc.strokeOval(
+          (centerX - radius) * sheet.CELLSIZE,
+          (centerY - radius) * sheet.CELLSIZE,
+          radius * 2 * sheet.CELLSIZE,
+          radius * 2 * sheet.CELLSIZE
+      );
+    }
+
+    gc.setGlobalAlpha(1.0);
+  }
+
   private void render() {
     graphics.clearRect(0, 0, getWidth(), getHeight());
     graphics.setFill(Color.WHITE);
@@ -233,9 +361,15 @@ class PixelCanvas extends Canvas {
     if (gridVisible) {
       drawGridLines();
     }
+
+    drawShapePreview(graphics);
   }
 
   public void setPaintColor(Color color) {
     paintColor = color;
+  }
+
+  public void setTool(Tool tool) {
+    currentTool = tool;
   }
 }

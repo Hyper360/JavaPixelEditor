@@ -83,10 +83,16 @@ public class PixelEditorApplication extends Application {
     // ===== EDIT MENU =====
     Menu editMenu = new Menu("Edit");
 
+    MenuItem rectangleToolItem = new MenuItem("Rectangle Tool");
+    rectangleToolItem.setOnAction(e -> pixelCanvas.setTool(Tool.RECTANGLE));
+
+    MenuItem circleToolItem = new MenuItem("Circle Tool");
+    circleToolItem.setOnAction(e -> pixelCanvas.setTool(Tool.CIRCLE));
+
     MenuItem toggleGridItem = new MenuItem("Toggle Grid (G)");
     toggleGridItem.setOnAction(e -> pixelCanvas.toggleGrid());
 
-    editMenu.getItems().addAll(toggleGridItem);
+    editMenu.getItems().addAll(rectangleToolItem, circleToolItem, toggleGridItem);
 
     // ===== COLOR PICKER =====
     Menu colorMenu = new Menu("Color");
