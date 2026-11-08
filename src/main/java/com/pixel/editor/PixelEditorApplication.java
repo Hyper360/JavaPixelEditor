@@ -10,6 +10,12 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -83,16 +89,15 @@ public class PixelEditorApplication extends Application {
     // ===== EDIT MENU =====
     Menu editMenu = new Menu("Edit");
 
-    MenuItem rectangleToolItem = new MenuItem("Rectangle Tool");
-    rectangleToolItem.setOnAction(e -> pixelCanvas.setTool(Tool.RECTANGLE));
-
-    MenuItem circleToolItem = new MenuItem("Circle Tool");
-    circleToolItem.setOnAction(e -> pixelCanvas.setTool(Tool.CIRCLE));
+    MenuItem pencilToolItem = createToolMenuItem("Pencil Tool", Tool.PENCIL, createPencilIcon());
+    MenuItem rectangleToolItem = createToolMenuItem("Rectangle Tool", Tool.RECTANGLE, createRectangleIcon());
+    MenuItem circleToolItem = createToolMenuItem("Circle Tool", Tool.CIRCLE, createCircleIcon());
+    MenuItem eyedropperToolItem = createToolMenuItem("Eyedropper Tool", Tool.EYEDROPPER, createEyedropperIcon());
 
     MenuItem toggleGridItem = new MenuItem("Toggle Grid (G)");
     toggleGridItem.setOnAction(e -> pixelCanvas.toggleGrid());
 
-    editMenu.getItems().addAll(rectangleToolItem, circleToolItem, toggleGridItem);
+    editMenu.getItems().addAll(pencilToolItem, rectangleToolItem, circleToolItem, eyedropperToolItem, toggleGridItem);
 
     // ===== COLOR PICKER =====
     Menu colorMenu = new Menu("Color");
@@ -105,6 +110,51 @@ public class PixelEditorApplication extends Application {
     menuBar.getMenus().addAll(fileMenu, editMenu, colorMenu);
     return menuBar;
 
+  }
+
+  private MenuItem createToolMenuItem(String label, Tool tool, Shape icon) {
+    MenuItem item = new MenuItem(label);
+    StackPane graphic = new StackPane(icon);
+    graphic.setPrefSize(18, 18);
+    item.setGraphic(graphic);
+    item.setOnAction(e -> pixelCanvas.setTool(tool));
+    return item;
+  }
+
+  private Shape createPencilIcon() {
+    Line line = new Line(2, 16, 14, 4);
+    line.setStroke(Color.BLACK);
+    line.setStrokeWidth(2);
+    return line;
+  }
+
+  private Shape createRectangleIcon() {
+    Rectangle rect = new Rectangle(2, 3, 14, 12);
+    rect.setFill(Color.TRANSPARENT);
+    rect.setStroke(Color.BLACK);
+    rect.setStrokeWidth(2);
+    return rect;
+  }
+
+  private Shape createCircleIcon() {
+    Circle circle = new Circle(9, 9, 7);
+    circle.setFill(Color.TRANSPARENT);
+    circle.setStroke(Color.BLACK);
+    circle.setStrokeWidth(2);
+    return circle;
+  }
+
+  private Shape createEyedropperIcon() {
+    Circle outer = new Circle(8, 8, 6);
+    outer.setFill(Color.TRANSPARENT);
+    outer.setStroke(Color.BLACK);
+    outer.setStrokeWidth(2);
+
+    Line line = new Line(12, 12, 18, 18);
+    line.setStroke(Color.BLACK);
+    line.setStrokeWidth(2);
+
+    return Shape.union(outer, line);
   }
 
   // ==== COLOR HANDLERS ====

@@ -10,7 +10,8 @@ import javafx.scene.paint.Color;
 enum Tool {
   PENCIL,
   RECTANGLE,
-  CIRCLE
+  CIRCLE,
+  EYEDROPPER
 }
 
 class PixelCanvas extends Canvas {
@@ -170,6 +171,8 @@ class PixelCanvas extends Canvas {
     if (event.isPrimaryButtonDown()) {
       if (currentTool == Tool.PENCIL) {
         draw(event.getX(), event.getY(), false);
+      } else if (currentTool == Tool.EYEDROPPER) {
+        sampleColorAt(event.getX(), event.getY());
       } else if (currentTool == Tool.RECTANGLE || currentTool == Tool.CIRCLE) {
         startCol = toGridCol(event.getX());
         startRow = toGridRow(event.getY());
@@ -232,6 +235,22 @@ class PixelCanvas extends Canvas {
 
   private int toGridRow(double y) {
     return (int) (((y / zoom) + viewportY) / sheet.CELLSIZE);
+  }
+
+  private void sampleColorAt(double x, double y) {
+    int col = toGridCol(x);
+    int row = toGridRow(y);
+
+    if (row < 0 || row >= sheet.getRows() || col < 0 || col >= sheet.getCols()) {
+      return;
+    }
+
+    Color sampledColor = sheet.grid[row][col];
+    if (sampledColor != null) {
+      paintColor = sampledColor;
+      currentTool = Tool.PENCIL;
+      render();
+    }
   }
 
   private void commitShape() {
