@@ -131,13 +131,9 @@ public class PixelEditorApplication extends Application {
     bucketFillButton.setToggleGroup(editingTools);
     bucketFillButton.setOnAction(event ->
         pixelCanvas.setEditingTool(PixelCanvas.EditingTool.BUCKET_FILL));
-    
-    ToggleButton lineButton = new ToggleButton("Line");
-    lineButton.setToggleGroup(editingTools);
-    lineButton.setOnAction(event ->
-      pixelCanvas.setEditingTool(PixelCanvas.EditingTool.LINE));
 
-    return new ToolBar(pencilButton, bucketFillButton, lineButton);
+
+    return new ToolBar(pencilButton, bucketFillButton);
   }
 
   // ===== FILE HANDLERS =====

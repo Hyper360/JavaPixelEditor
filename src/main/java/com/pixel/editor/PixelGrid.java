@@ -68,35 +68,6 @@ public class PixelGrid {
     }
   }
 
-  public void drawLine(int startRow, int startCol, int endRow, int endCol, Color color) {
-    int deltaCol = Math.abs(endCol - startCol);
-    int deltaRow = -Math.abs(endRow - startRow);
-    int colStep = startCol < endCol ? 1 : -1;
-    int rowStep = startRow < endRow ? 1 : -1;
-    int error = deltaCol + deltaRow;
-
-    int row = startRow;
-    int col = startCol;
-
-    while (true) {
-      drawPixel(row, col, color);
-
-      if (row == endRow && col == endCol) {
-        break;
-      }
-
-      int doubledError = 2 * error;
-      if (doubledError >= deltaRow) {
-        error += deltaRow;
-        col += colStep;
-      }
-      if (doubledError <= deltaCol) {
-        error += deltaCol;
-        row += rowStep;
-      }
-    }
-  }
-
   public void fillContiguousArea(int row, int col, Color color) {
     if (row < 0 || row >= ROWS || col < 0 || col >= COLUMNS) {
       return;
