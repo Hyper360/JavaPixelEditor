@@ -18,10 +18,17 @@ class PixelCanvas extends Canvas {
   private double lastMouseX = 0;
   private double lastMouseY = 0;
   private double zoom = 1.0;
+  private Integer lineStartRow;
+  private Integer lineStartCol;
+  private Integer lineEndRow;
+  private Integer lineEndCol;
+  private boolean lineInProgress;
+  private boolean lineErasing;
   private EditingTool editingTool = EditingTool.PENCIL;
   public enum EditingTool {
     PENCIL,
-    BUCKET_FILL
+    BUCKET_FILL,
+    LINE,
   }
 
 
@@ -35,6 +42,7 @@ class PixelCanvas extends Canvas {
 
     setOnMousePressed(this::handleMousePressed);
     setOnMouseDragged(this::handleMouseDragged);
+    setOnMouseReleased(this::handleMouseReleased);
     setOnScroll(this::handleScroll);
     setFocusTraversable(true);
     setOnKeyPressed(event -> {
@@ -60,6 +68,16 @@ class PixelCanvas extends Canvas {
   }
 
   public void setEditingTool(EditingTool editingTool) {
+    if (this.editingTool == EditingTool.LINE
+        && editingTool != EditingTool.LINE
+        && lineInProgress) {
+      lineInProgress = false;
+      lineStartRow = null;
+      lineStartCol = null;
+      lineEndRow = null;
+      lineEndCol = null;
+      render();
+    }
     this.editingTool = editingTool;
   }
 
@@ -168,13 +186,19 @@ class PixelCanvas extends Canvas {
     lastMouseY = event.getY();
 
     if (event.isPrimaryButtonDown()) {
-      if (editingTool == EditingTool.BUCKET_FILL) {
+      if (editingTool == EditingTool.LINE) {
+        startLine(event.getX(), event.getY(), false);
+      } else if (editingTool == EditingTool.BUCKET_FILL) {
         fill(event.getX(), event.getY());
       } else {
         draw(event.getX(), event.getY(), false);
       }
     } else if (event.isSecondaryButtonDown()) {
-      draw(event.getX(), event.getY(), true);
+      if (editingTool == EditingTool.LINE) {
+        startLine(event.getX(), event.getY(), true);
+      } else {
+        draw(event.getX(), event.getY(), true);
+      }
     }
   }
 
@@ -190,11 +214,77 @@ class PixelCanvas extends Canvas {
       lastMouseY = event.getY();
       render();
       return;
+    } else if (editingTool == EditingTool.LINE && event.isPrimaryButtonDown()) {
+      updateLinePreview(event.getX(), event.getY());
+    } else if (editingTool == EditingTool.LINE && event.isSecondaryButtonDown()) {
+      updateLinePreview(event.getX(), event.getY());
     } else if (event.isPrimaryButtonDown() && editingTool == EditingTool.PENCIL) {
       draw(event.getX(), event.getY(), false);
     } else if (event.isSecondaryButtonDown()) {
       draw(event.getX(), event.getY(), true);
     }
+  }
+
+  private void handleMouseReleased(MouseEvent event) {
+    if (editingTool != EditingTool.LINE || !lineInProgress) {
+      return;
+    }
+
+    updateLinePreview(event.getX(), event.getY());
+    sheet.drawLine(lineStartRow, lineStartCol, lineEndRow, lineEndCol,
+        lineErasing ? new Color(0, 0, 0, 0) : paintColor);
+
+    lineInProgress = false;
+    lineStartRow = null;
+    lineStartCol = null;
+    lineEndRow = null;
+    lineEndCol = null;
+    render();
+  }
+
+  private void startLine(double x, double y, boolean erase) {
+    int[] cell = getGridCell(x, y);
+    lineStartRow = cell[0];
+    lineStartCol = cell[1];
+    lineEndRow = cell[0];
+    lineEndCol = cell[1];
+    lineErasing = erase;
+    lineInProgress = true;
+    render();
+  }
+
+  private void updateLinePreview(double x, double y) {
+    int[] cell = getGridCell(x, y);
+    lineEndRow = cell[0];
+    lineEndCol = cell[1];
+    render();
+  }
+
+  private int[] getGridCell(double x, double y) {
+    int col = (int) (((x / zoom) + viewportX) / sheet.CELLSIZE);
+    int row = (int) (((y / zoom) + viewportY) / sheet.CELLSIZE);
+    return new int[] {row, col};
+  }
+
+  private void drawLinePreview() {
+    if (!lineInProgress) {
+      return;
+    }
+
+    double startX = ((lineStartCol * sheet.CELLSIZE) - viewportX
+        + sheet.CELLSIZE / 2) * zoom;
+    double startY = ((lineStartRow * sheet.CELLSIZE) - viewportY
+        + sheet.CELLSIZE / 2) * zoom;
+    double endX = ((lineEndCol * sheet.CELLSIZE) - viewportX
+        + sheet.CELLSIZE / 2) * zoom;
+    double endY = ((lineEndRow * sheet.CELLSIZE) - viewportY
+        + sheet.CELLSIZE / 2) * zoom;
+
+    graphics.setGlobalAlpha(0.45);
+    graphics.setStroke(lineErasing ? Color.WHITE : paintColor);
+    graphics.setLineWidth(sheet.CELLSIZE * zoom);
+    graphics.strokeLine(startX, startY, endX, endY);
+    graphics.setGlobalAlpha(1.0);
   }
 
   private void draw(double x, double y, boolean erase) {
@@ -258,6 +348,8 @@ class PixelCanvas extends Canvas {
     if (gridVisible) {
       drawGridLines();
     }
+
+    drawLinePreview();
   }
 
   public void setPaintColor(Color color) {
