@@ -21,7 +21,9 @@ class PixelCanvas extends Canvas {
   private EditingTool editingTool = EditingTool.PENCIL;
   public enum EditingTool {
     PENCIL,
-    BUCKET_FILL
+    BUCKET_FILL,
+    LIGHTEN,
+    DARKEN
   }
 
 
@@ -170,6 +172,10 @@ class PixelCanvas extends Canvas {
     if (event.isPrimaryButtonDown()) {
       if (editingTool == EditingTool.BUCKET_FILL) {
         fill(event.getX(), event.getY());
+      } else if (editingTool == EditingTool.LIGHTEN) {
+        adjustBrightness(event.getX(), event.getY(), true);
+      } else if (editingTool == EditingTool.DARKEN) {
+        adjustBrightness(event.getX(), event.getY(), false);
       } else {
         draw(event.getX(), event.getY(), false);
       }
@@ -192,6 +198,10 @@ class PixelCanvas extends Canvas {
       return;
     } else if (event.isPrimaryButtonDown() && editingTool == EditingTool.PENCIL) {
       draw(event.getX(), event.getY(), false);
+    } else if (event.isPrimaryButtonDown() && editingTool == EditingTool.LIGHTEN) {
+      adjustBrightness(event.getX(), event.getY(), true);
+    } else if (event.isPrimaryButtonDown() && editingTool == EditingTool.DARKEN) {
+      adjustBrightness(event.getX(), event.getY(), false);
     } else if (event.isSecondaryButtonDown()) {
       draw(event.getX(), event.getY(), true);
     }
@@ -214,6 +224,18 @@ class PixelCanvas extends Canvas {
     int row = (int)(((y / zoom) + viewportY) / sheet.CELLSIZE);
 
     sheet.fillContiguousArea(row, col, paintColor);
+    render();
+  }
+
+  private void adjustBrightness(double x, double y, boolean lighten) {
+    int col = (int)(((x / zoom) + viewportX) / sheet.CELLSIZE);
+    int row = (int)(((y / zoom) + viewportY) / sheet.CELLSIZE);
+
+    if (lighten) {
+      sheet.lightenPixel(row, col);
+    } else {
+      sheet.darkenPixel(row, col);
+    }
     render();
   }
 
