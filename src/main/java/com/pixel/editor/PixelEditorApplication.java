@@ -132,8 +132,19 @@ public class PixelEditorApplication extends Application {
     bucketFillButton.setOnAction(event ->
         pixelCanvas.setEditingTool(PixelCanvas.EditingTool.BUCKET_FILL));
 
+    ToggleButton lightenButton = new ToggleButton("Lighten");
+    lightenButton.setToggleGroup(editingTools);
+    lightenButton.setOnAction(event ->
+        pixelCanvas.setEditingTool(PixelCanvas.EditingTool.LIGHTEN));
 
-    return new ToolBar(pencilButton, bucketFillButton);
+    ToggleButton darkenButton = new ToggleButton("Darken");
+    darkenButton.setToggleGroup(editingTools);
+    darkenButton.setOnAction(event ->
+        pixelCanvas.setEditingTool(PixelCanvas.EditingTool.DARKEN));
+
+
+    return new ToolBar(pencilButton, bucketFillButton,
+        lightenButton, darkenButton);
   }
 
   // ===== FILE HANDLERS =====

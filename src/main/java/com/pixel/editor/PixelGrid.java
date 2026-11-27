@@ -110,4 +110,38 @@ public class PixelGrid {
       }
     }
   }
+
+  public void lightenPixel(int row, int col) {
+    if (row >= 0 && row < ROWS && col >= 0 && col < COLUMNS) {
+      Color color = grid[row][col];
+      if (color.getOpacity() == 0) {
+        return;
+      }
+
+      grid[row][col] = new Color(
+          clamp(color.getRed() + 0.1),
+          clamp(color.getGreen() + 0.1),
+          clamp(color.getBlue() + 0.1),
+          color.getOpacity());
+    }
+  }
+
+  public void darkenPixel(int row, int col) {
+    if (row >= 0 && row < ROWS && col >= 0 && col < COLUMNS) {
+      Color color = grid[row][col];
+      if (color.getOpacity() == 0) {
+        return;
+      }
+
+      grid[row][col] = new Color(
+          clamp(color.getRed() - 0.1),
+          clamp(color.getGreen() - 0.1),
+          clamp(color.getBlue() - 0.1),
+          color.getOpacity());
+    }
+  }
+
+  private double clamp(double value) {
+    return Math.max(0.0, Math.min(1.0, value));
+  }
 }
